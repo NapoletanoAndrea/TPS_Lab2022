@@ -111,7 +111,8 @@ FVector ACoverActor::GetPositionHiddenFromPlayer() {
 FVector ACoverActor::GetHidingSpotPosition()
 {
 	const ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	const FVector PlayerLocation = PlayerCharacter->GetActorLocation();
+	FVector PlayerLocation = PlayerCharacter->GetActorLocation();
+	PlayerLocation.Z = GetTransform().GetLocation().Z;
 	FVector ClosestPointToPlayer;
 	BoxComp->GetClosestPointOnCollision(PlayerLocation, ClosestPointToPlayer);
 
