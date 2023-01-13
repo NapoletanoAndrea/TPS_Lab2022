@@ -2,7 +2,6 @@
 
 
 #include "EnemyManager.h"
-
 #include "Kismet/GameplayStatics.h"
 #include "UnrealStudies/HealthComponent.h"
 
@@ -11,9 +10,7 @@ AEnemyManager::AEnemyManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
 	PrimaryActorTick.TickInterval = 1.0f;
-
 	bFirstCall = true;
 }
 
@@ -52,12 +49,7 @@ TEnumAsByte<ECombatStatus> AEnemyManager::UpdateStatus()
 	{
 		for(const auto &Enemy : Enemies)
 		{
-			if(!IsValid(Enemy))
-			{
-				continue;
-			}
-
-			if(!IsValid(Enemy->GetController()))
+			if(!IsValid(Enemy) || !IsValid(Enemy->GetController()))
 			{
 				continue;
 			}

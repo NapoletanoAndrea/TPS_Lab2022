@@ -5,6 +5,7 @@
 
 UHealthComponent::UHealthComponent() {
 	PrimaryComponentTick.bCanEverTick = true;
+	Health = 100;
 }
 
 
