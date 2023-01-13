@@ -68,6 +68,7 @@ void AEnemyAIController::StopAI() {
 }
 
 void AEnemyAIController::DetectPlayer() {
+	Aggroed = true;
 	GetBlackboardComponent()->SetValueAsBool("SeePlayer", true);
 }
 
@@ -99,7 +100,7 @@ void AEnemyAIController::OnPerceptionUpdate_SenseManagement(const TArray<AActor*
 
 void AEnemyAIController::ManageSight(){
 	DetectPlayer();
-	NotifyTeammate();
+	// NotifyTeammate();
 }
 
 void AEnemyAIController::ManageHearing(){

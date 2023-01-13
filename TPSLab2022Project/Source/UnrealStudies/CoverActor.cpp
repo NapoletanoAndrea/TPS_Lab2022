@@ -122,9 +122,9 @@ FVector ACoverActor::GetHidingSpotPosition()
 	FVector Dir = ClosestPointToPlayer - PlayerLocation;
 	Dir.Normalize();
 	
-	const FVector Start = ClosestPointToPlayer + Dir * 5000;
+	const FVector Start = ClosestPointToPlayer + Dir * 100000;
 	const FVector End = PlayerLocation;
-
+	
 	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 5, 0, 10);
 	if(GetWorld()->LineTraceMultiByChannel(HitResults, Start, End, ECC_WorldStatic))
 	{
@@ -132,8 +132,9 @@ FVector ACoverActor::GetHidingSpotPosition()
 		{
 			if(Hit.GetActor() == this)
 			{
-				DrawDebugSphere(GetWorld(), Hit.Location, 50, 12, FColor::Green, false, 5, 0, 5);
-				return Hit.Location;
+				const FVector FinalLocation = Hit.Location + Hit.ImpactNormal * 50;
+				DrawDebugSphere(GetWorld(), FinalLocation, 50, 12, FColor::Green, false, 5, 0, 5);			
+				return FinalLocation;
 			}
 		}
 	}
