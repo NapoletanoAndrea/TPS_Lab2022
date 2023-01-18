@@ -21,8 +21,7 @@ void AEnemyManager::BeginPlay()
 
 	TArray<AActor*> AllActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemy::StaticClass(), AllActors);
-
-	// Enemies.Init(nullptr, AllActors.Num());
+	
 	for(const auto &Actor : AllActors)
 	{
 		Enemies.Add(Cast<AEnemy>(Actor));
