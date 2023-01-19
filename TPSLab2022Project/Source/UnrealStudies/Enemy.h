@@ -11,6 +11,8 @@
 
 /** Delegate used to notify character actions */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGameStateEnemy);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FEnemyDelegate, AEnemy*, Enemy);
+
 UCLASS()
 class UNREALSTUDIES_API AEnemy : public ACharacter
 {
@@ -44,6 +46,9 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void OnConstruction(const FTransform& Transform) override;
+
+	UFUNCTION()
+	void Die();
 
 public:
 	virtual void Tick(float DeltaTime) override;
@@ -94,6 +99,15 @@ public:
 	/** Broadcsted when character trace line from weapon */
 	UPROPERTY(BlueprintAssignable)
 	FGameStateEnemy OnCharacterTraceLine;
+
+	UPROPERTY(BlueprintAssignable)
+	FEnemyDelegate OnDeath;
+
+	UFUNCTION(BlueprintCallable)
+	bool IsAggroed();
+
+	UFUNCTION(BlueprintCallable)
+	bool IsDead();
 	
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	FORCEINLINE class UHealthComponent* GetHealthComponent() const { return HealthComponent; }

@@ -4,7 +4,10 @@
 
 #include "Components/BoxComponent.h"
 #include "UnrealStudies/Enemy.h"
+#include "UnrealStudies/TP_ThirdPerson/TP_ThirdPersonCharacter.h"
 #include "EnemyArea.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FEnemyAreaDelegate, AEnemyArea*, EnemyArea);
 
 UCLASS()
 class UNREALSTUDIES_API AEnemyArea : public AActor
@@ -26,6 +29,12 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void AddEnemy(AEnemy* Enemy);
+
+	UFUNCTION()
+	void RemoveEnemy(AEnemy* Enemy);
+	
 	UFUNCTION(BlueprintCallable)
 	void FillEnemyArray(TArray<AActor*> EnemyActors);
 
@@ -36,4 +45,16 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(VisibleAnywhere)
+	bool bContainsPlayer;
+
+	UPROPERTY(VisibleAnywhere)
+	bool bPermanentFighting;
+	
+	UFUNCTION(BlueprintCallable)
+	bool ContainsLiveEnemies() const;
+
+	UPROPERTY(BlueprintAssignable)
+	FEnemyAreaDelegate OnAreaUpdated;
 };

@@ -64,11 +64,18 @@ void AEnemyAIController::StopAI() {
 		ControlledPawn->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		ControlledPawn->WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+
+	Aggroed = false;
+	OnUnaggro.Broadcast(this);
 	Destroy();
 }
 
 void AEnemyAIController::DetectPlayer() {
-	Aggroed = true;
+	if(!Aggroed)
+	{
+		Aggroed = true;
+		OnAggro.Broadcast(this);
+	}
 	GetBlackboardComponent()->SetValueAsBool("SeePlayer", true);
 }
 

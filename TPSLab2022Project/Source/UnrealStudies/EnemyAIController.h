@@ -10,9 +10,8 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "EnemyAIController.generated.h"
 
-/**
- * 
- */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FEnemyAIControllerDelegate, AEnemyAIController*, EnemyAIController);
+
 UCLASS()
 class UNREALSTUDIES_API AEnemyAIController : public AAIController
 {
@@ -22,6 +21,10 @@ public:
 	AEnemyAIController();
 
 	bool Aggroed;
+	
+	FEnemyAIControllerDelegate OnAggro;
+	
+	FEnemyAIControllerDelegate OnUnaggro;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI: Team")
 	float TeammateAdviseRadius = 10000.f;

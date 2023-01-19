@@ -3,11 +3,13 @@
 
 #include "Enemy.h"
 #include "CollisionShape.h"
+#include "EnemyAIController.h"
 #include "TP_ThirdPerson/TP_ThirdPersonCharacter.h"
 
 // Sets default values
-AEnemy::AEnemy() {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+AEnemy::AEnemy()
+{
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Set character movement 
@@ -20,7 +22,7 @@ AEnemy::AEnemy() {
 	// Add a mesh for the weapon
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	WeaponMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "hand_rSocket");
-	
+
 	// Add Health manager
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health Component"));
 }
@@ -29,23 +31,35 @@ AEnemy::AEnemy() {
 //////////////////////////////////////////////////////////////////////////
 // UE4 functions for game thread
 
-void AEnemy::BeginPlay() {
-	Super::BeginPlay();	
+void AEnemy::BeginPlay()
+{
+	Super::BeginPlay();
+
+	GetHealthComponent()->OnHealtToZero.AddDynamic(this, &AEnemy::Die);
 }
 
-void AEnemy::Tick(float DeltaTime) {
+void AEnemy::Tick(float DeltaTime)
+{
 	Super::Tick(DeltaTime);
 }
 
-void AEnemy::OnConstruction(const FTransform & Transform) {
+void AEnemy::OnConstruction(const FTransform& Transform)
+{
 	WeaponMesh->SetStaticMesh(WeaponSlot.WeaponMesh);
 	GetHealthComponent()->bAutoRecovery = false;
 }
 
+void AEnemy::Die()
+{
+	OnDeath.Broadcast(this);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 // Mechanic: Fire with weapon
 
-void AEnemy::FireWithSphereSweep() {
+void AEnemy::FireWithSphereSweep()
+{
 	FCollisionQueryParams Params;
 	// Ignore the enemy's pawn
 	AActor* Myself = Cast<AActor>(this);
@@ -58,7 +72,7 @@ void AEnemy::FireWithSphereSweep() {
 	FCollisionShape CollShape = FCollisionShape::MakeSphere(WeaponRadius);
 
 	FVector ZForward = FVector::UpVector * AimOffset;
-	FVector Start = WeaponMesh->GetComponentLocation()+ ZForward + (WeaponMesh->GetForwardVector() * WeaponOffset);
+	FVector Start = WeaponMesh->GetComponentLocation() + ZForward + (WeaponMesh->GetForwardVector() * WeaponOffset);
 	FVector End = Start + (GetActorForwardVector() * WeaponRange);
 
 	FHitResult Hit;
@@ -66,41 +80,65 @@ void AEnemy::FireWithSphereSweep() {
 	bool bHit = GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECC_Pawn, CollShape, Params);
 	OnCharacterTraceLine.Broadcast();
 
-	if (bHit) {
+	if (bHit)
+	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), WeaponSlot.HitEFX, Hit.ImpactPoint);
 		ATP_ThirdPersonCharacter* HitPlayer = Cast<ATP_ThirdPersonCharacter>(Hit.Actor.Get());
 
-		if (HitPlayer) {
+		if (HitPlayer)
+		{
 			GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, TEXT("Hit! Player"));
 			HitPlayer->GetHealthComponent()->GetDamage(WeaponSlot.Damage);
-		} else {
+		}
+		else
+		{
 			GEngine->AddOnScreenDebugMessage(-1, 4.0f, FColor::Green, TEXT("Hit! " + Hit.Actor.Get()->GetName()));
-		}		
+		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Mechanic: Aim
 
-void AEnemy::AimIn() {
+void AEnemy::AimIn()
+{
 	OnCharacterAim.Broadcast();
 }
 
-void AEnemy::AimOut() {
+void AEnemy::AimOut()
+{
 	OnCharacterStopAim.Broadcast();
+}
+
+bool AEnemy::IsAggroed()
+{
+	const AEnemyAIController* EnemyAIController = Cast<AEnemyAIController>(GetController());
+	if (IsValid(EnemyAIController))
+	{
+		return EnemyAIController->Aggroed;
+	}
+	return false;
+}
+
+bool AEnemy::IsDead()
+{
+	return GetHealthComponent()->Health <= 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Mechanic: Crouch
 
-void AEnemy::CrouchMe() {
-	if (CanCrouch()) {
+void AEnemy::CrouchMe()
+{
+	if (CanCrouch())
+	{
 		Crouch();
 		OnCharacterCrouch.Broadcast();
 	}
 }
 
-void AEnemy::UncrouchMe() {
+void AEnemy::UncrouchMe()
+{
 	GEngine->AddOnScreenDebugMessage(-1, 5.2f, FColor::Orange, TEXT("Enemy uncrouch!"));
 	UnCrouch();
 	OnCharacterUncrouch.Broadcast();
