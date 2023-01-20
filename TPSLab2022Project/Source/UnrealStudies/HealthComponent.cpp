@@ -29,6 +29,11 @@ void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 
 void UHealthComponent::GetDamage(float Amount) {
+	if(bIsInvincible)
+	{
+		return;
+	}
+	
 	Health = FMath::Clamp(Health - Amount, 0.0f, HealthMaxValue);
 	bIsDamaged = true;
 	TimeSinceLastDamage = GetWorld()->GetTimeSeconds();
@@ -55,6 +60,18 @@ void UHealthComponent::CheckDamageTime(float DeltaTime) {
 	}
 }
 
+void UHealthComponent::CheckInvincibilityTime(float DeltaTime)
+{
+	if(bIsInvincible)
+	{
+		const float CurrentTime = GetWorld()->GetTimeSeconds();
+		if(CurrentTime - InvincibilityStartTime >= CurrentInvincibilitySeconds)
+		{
+			bIsInvincible = false;
+		}
+	}
+}
+
 void UHealthComponent::AutoRecoveryHealth(float DeltaTime) {
 	if (bAutoRecovery && !bIsDamaged) {
 		ElapsedTime += DeltaTime;
@@ -67,6 +84,13 @@ void UHealthComponent::AutoRecoveryHealth(float DeltaTime) {
 	}
 }
 
-float UHealthComponent::HealthPercentage() {
+float UHealthComponent::HealthPercentage()
+{
 	return HealthMaxValue == 0.0 ? 1.0f : (Health/HealthMaxValue);
+}
+
+void UHealthComponent::SetTimedInvincibility(float Time)
+{
+	bIsInvincible = true;
+	CurrentInvincibilitySeconds = Time;
 }

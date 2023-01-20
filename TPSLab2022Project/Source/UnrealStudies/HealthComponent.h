@@ -24,10 +24,17 @@ private:
 	float ElapsedTime;
 	float TimeSinceLastDamage;
 	bool bIsDamaged;
+	
+	UPROPERTY(VisibleAnywhere)
+	bool bIsInvincible;
+	float CurrentInvincibilitySeconds;
+	float InvincibilityStartTime;
 
 	void AutoRecoveryHealth(float DeltaTime);
 
 	void CheckDamageTime(float DeltaTime);
+
+	void CheckInvincibilityTime(float DeltaTime);
 
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -69,5 +76,8 @@ public:
 	/** Retrieve the health percentage */
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	float HealthPercentage();
+
+	UFUNCTION(BlueprintCallable)
+	void SetTimedInvincibility(float Time);
 
 };
