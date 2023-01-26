@@ -15,6 +15,8 @@ ABoss::ABoss()
 
 	ChargedAttackSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("Charged Attack Spawn Point"));
 	ChargedAttackSpawnPoint->SetupAttachment(RootComponent);
+
+	BossState = Unaggroed;
 }
 
 // Called when the game starts or when spawned
@@ -23,6 +25,7 @@ void ABoss::BeginPlay()
 	Super::BeginPlay();
 	
 	StartLocation = GetActorLocation();
+	StartRotation = GetActorRotation();
 }
 
 FVector ABoss::GetBossDestination(float Radius)
@@ -38,8 +41,7 @@ FVector ABoss::GetBossDestination(float Radius)
 void ABoss::ChargedAttack(float Damage, float Range, float Radius)
 {
 	FCollisionQueryParams Params;
-	AActor* Myself = Cast<AActor>(this);
-	Params.AddIgnoredActor(Myself);
+	Params.AddIgnoredActor(this);
 
 	FCollisionShape CollShape = FCollisionShape::MakeSphere(Radius);
 
@@ -59,9 +61,12 @@ void ABoss::ChargedAttack(float Damage, float Range, float Radius)
 
 		if (HitPlayer)
 		{
+			GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, TEXT("Hit Player"));
 			HitPlayer->GetHealthComponent()->GetDamage(Damage);
 		}
 	}
+
+	OnChargedAttackExecuted.Broadcast();
 }
 
 void ABoss::MeteoriteAttack(float Number, float Radius)
@@ -90,6 +95,15 @@ void ABoss::OnMeteoriteHit()
 	if(CurrentMeteoriteNumber <= 0)
 	{
 		OnMeteoriteAttackFinished.Broadcast();
+	}
+}
+
+void ABoss::SetBossState(TEnumAsByte<EBossState> NewState)
+{
+	if(NewState != BossState)
+	{
+		BossState = NewState;
+		OnBossStateChanged.Broadcast(BossState);
 	}
 }
 

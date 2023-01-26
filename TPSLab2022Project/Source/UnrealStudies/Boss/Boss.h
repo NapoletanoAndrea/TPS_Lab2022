@@ -8,8 +8,22 @@
 #include "UnrealStudies/Enemy.h"
 #include "Boss.generated.h"
 
+UENUM()
+enum EBossState
+{
+	Unaggroed
+	UMETA(DisplayName = "Unaggroed"),
+	
+	Calm
+	UMETA(DisplayName = "Calm"),
+
+	Fighting
+	UMETA(DisplayName = "Fighting")
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FBossDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMeteoriteAttackDelegate, TArray<AMeteorite*>, Meteorites);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBossStateDelegate, TEnumAsByte<EBossState>, BossState);
 
 UCLASS()
 class UNREALSTUDIES_API ABoss : public AEnemy
@@ -22,7 +36,11 @@ public:
 
 protected:
 
+	UPROPERTY(BlueprintReadOnly)
 	FVector StartLocation;
+
+	UPROPERTY(BlueprintReadOnly)
+	FRotator StartRotation;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USceneComponent* ChargedAttackSpawnPoint;
@@ -48,15 +66,27 @@ protected:
 	UFUNCTION()
 	virtual void OnMeteoriteHit();
 
+	UFUNCTION(BlueprintCallable)
+	void SetBossState(TEnumAsByte<EBossState> NewState);
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TEnumAsByte<EBossState> BossState;
+
+	UPROPERTY(BlueprintAssignable)
+	FBossDelegate OnChargedAttackExecuted;
 
 	UPROPERTY(BlueprintAssignable)
 	FBossDelegate OnMeteoriteAttackFinished;
 	
 	UPROPERTY(BlueprintAssignable)
 	FMeteoriteAttackDelegate OnMeteoriteAttackLaunched;
+	
+	UPROPERTY(BlueprintAssignable)
+	FBossStateDelegate OnBossStateChanged;
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetStartLocation() const { return StartLocation; }
