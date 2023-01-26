@@ -67,6 +67,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Healt: variables")
 	float NoDamageTimeForRecovery = 2.5f;
 
+	UFUNCTION(BlueprintCallable)
 	void GetDamage(float Amount);
 
 	void IncrementMaxHealth(float Amount);

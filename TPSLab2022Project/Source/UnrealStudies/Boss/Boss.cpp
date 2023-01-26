@@ -4,7 +4,6 @@
 #include "Boss.h"
 
 #include "CollisionDebugDrawingPublic.h"
-#include "NavigationSystem.h"
 #include "UnrealStudies/TP_ThirdPerson/TP_ThirdPersonCharacter.h"
 
 
@@ -22,8 +21,8 @@ ABoss::ABoss()
 void ABoss::BeginPlay()
 {
 	Super::BeginPlay();
-
-	ChargedAttack(0, 200, 50);
+	
+	StartLocation = GetActorLocation();
 }
 
 FVector ABoss::GetBossDestination(float Radius)
@@ -64,6 +63,36 @@ void ABoss::ChargedAttack(float Damage, float Range, float Radius)
 		}
 	}
 }
+
+void ABoss::MeteoriteAttack(float Number, float Radius)
+{
+	TArray<AMeteorite*> Meteorites;
+	
+	FVector Direction = GetActorForwardVector();
+	const float DeltaAngle = 360 / Number;
+	CurrentMeteoriteNumber = Number;
+	
+	for(int i = 0; i < Number; i++)
+	{
+		FVector Location = GetTransform().TransformPosition(MeteoriteSpawnLocation) + Direction * Radius;
+		FRotator Rotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+		Meteorites.Add(GetWorld()->SpawnActor<AMeteorite>(MeteoriteClass, Location, Rotation));
+		Meteorites[i]->OnMeteoriteHit.AddDynamic(this, &ABoss::OnMeteoriteHit);
+		Direction = Direction.RotateAngleAxis(DeltaAngle, FVector::UpVector);
+	}
+
+	OnMeteoriteAttackLaunched.Broadcast(Meteorites);
+}
+
+void ABoss::OnMeteoriteHit()
+{
+	CurrentMeteoriteNumber--;
+	if(CurrentMeteoriteNumber <= 0)
+	{
+		OnMeteoriteAttackFinished.Broadcast();
+	}
+}
+
 
 // Called every frame
 void ABoss::Tick(float DeltaTime)

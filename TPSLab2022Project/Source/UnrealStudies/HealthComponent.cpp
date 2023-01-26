@@ -25,6 +25,7 @@ void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 	AutoRecoveryHealth(DeltaTime);
 	CheckDamageTime(DeltaTime);
+	CheckInvincibilityTime(DeltaTime);
 }
 
 
@@ -93,4 +94,5 @@ void UHealthComponent::SetTimedInvincibility(float Time)
 {
 	bIsInvincible = true;
 	CurrentInvincibilitySeconds = Time;
+	InvincibilityStartTime = GetWorld()->GetTimeSeconds();
 }
