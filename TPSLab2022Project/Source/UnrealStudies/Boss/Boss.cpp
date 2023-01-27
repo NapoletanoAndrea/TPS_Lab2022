@@ -69,7 +69,7 @@ void ABoss::ChargedAttack(float Damage, float Range, float Radius)
 	OnChargedAttackExecuted.Broadcast();
 }
 
-void ABoss::MeteoriteAttack(float Number, float Radius)
+void ABoss::MeteoriteAttack(float Number, float Radius, float Distance, float Damage)
 {
 	TArray<AMeteorite*> Meteorites;
 	
@@ -82,6 +82,8 @@ void ABoss::MeteoriteAttack(float Number, float Radius)
 		FVector Location = GetTransform().TransformPosition(MeteoriteSpawnLocation) + Direction * Radius;
 		FRotator Rotation = FRotationMatrix::MakeFromX(Direction).Rotator();
 		Meteorites.Add(GetWorld()->SpawnActor<AMeteorite>(MeteoriteClass, Location, Rotation));
+		Meteorites[i]->Damage = Damage;
+		Meteorites[i]->Distance = Distance;
 		Meteorites[i]->OnMeteoriteHit.AddDynamic(this, &ABoss::OnMeteoriteHit);
 		Direction = Direction.RotateAngleAxis(DeltaAngle, FVector::UpVector);
 	}

@@ -61,7 +61,7 @@ protected:
 	virtual void ChargedAttack(float Damage, float Range, float Radius);
 
 	UFUNCTION(BlueprintCallable)
-	virtual void MeteoriteAttack(float Number, float Radius);
+	virtual void MeteoriteAttack(float Number, float Radius, float Distance, float Damage);
 
 	UFUNCTION()
 	virtual void OnMeteoriteHit();

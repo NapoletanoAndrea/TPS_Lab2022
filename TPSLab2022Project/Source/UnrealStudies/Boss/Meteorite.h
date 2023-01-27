@@ -32,4 +32,10 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FMeteoriteDelegate OnMeteoriteHit;
+
+	UPROPERTY(BlueprintReadWrite)
+	float Damage = 30;
+	
+	UPROPERTY(BlueprintReadWrite)
+    float Distance = 200;
 };
