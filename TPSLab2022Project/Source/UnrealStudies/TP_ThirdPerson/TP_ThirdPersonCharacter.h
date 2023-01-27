@@ -111,6 +111,24 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Timeline")
 	UCurveFloat* CrouchCurve;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Run")
+	float RunSpeedMultiplier = 1.3f;
+
+	UPROPERTY(EditAnywhere, Category="Run")
+	float MaxStamina = 100;
+
+	UPROPERTY(VisibleAnywhere, Category="Run")
+	float CurrentStamina;
+
+	UPROPERTY(EditAnywhere, Category="Run")
+	float StaminaConsumedPerSecond = 10;
+
+	UPROPERTY(EditAnywhere, Category="Run")
+	float StaminaRecoveryStartDelay = 2;
+	
+	UPROPERTY(EditAnywhere, Category="Run")
+	float StaminaRecoveredPerSecond = 30;
 	
 	/** This array contains all the character weapons*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapons")
@@ -126,8 +144,6 @@ private:
 	int ActiveThrowable;
 
 	int MagBullets;
-
-	float MaxSpeedWalkingOrig;
 
 	float FireTime;
 
@@ -148,6 +164,16 @@ private:
 	bool bIsUsingWeapon = false;
 
 	bool bCanMove = false;
+
+	bool bHoldingRunButton = false;
+
+	bool bIsInputEnabled = true;
+
+	bool bCanRun = true;
+
+	bool bPrevIsRunning = false;
+
+	float StopRunTime;
 	
 	/** Timeline use for aiming: change the visual from 360 to right shoulder*/
 	FTimeline AimTimeline;
@@ -216,6 +242,13 @@ protected:
 	void CrouchCharacter();
 	void StopCrouchCharacter();
 
+	// Mechanic: Run
+	void StartRunning();
+	void StopRunning();
+	void ManageStamina(float DeltaTime);
+	void ForceStopRunning();
+	bool IsRunning();
+
 	// Mechanic: Aim
 	void AimInWeapon();
 	void AimOutWeapon();
@@ -230,6 +263,9 @@ protected:
 	// 
 
 public:
+
+	UPROPERTY(BlueprintReadOnly)
+	float MaxSpeedWalkingOrig;
 	
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;

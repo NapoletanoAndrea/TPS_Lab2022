@@ -61,6 +61,8 @@ ATP_ThirdPersonCharacter::ATP_ThirdPersonCharacter() {
 	CheckCoverRadius = 60.0f;
 	ActualEight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 	bIsAiming = false;
+
+	CurrentStamina = MaxStamina;
 }
 
 void ATP_ThirdPersonCharacter::BeginPlay() {
@@ -92,6 +94,8 @@ void ATP_ThirdPersonCharacter::BeginPlay() {
 
 
 	HealthComponent->OnHealtToZero.AddDynamic(this, &ATP_ThirdPersonCharacter::StopCharacter);
+
+	CurrentStamina = MaxStamina;
 }
 
 void ATP_ThirdPersonCharacter::OnConstruction(const FTransform & Transform) {
@@ -106,6 +110,8 @@ void ATP_ThirdPersonCharacter::Tick(float DeltaTime) {
 
 	AimTimeline.TickTimeline(DeltaTime);
 	CrouchTimeline.TickTimeline(DeltaTime);
+
+	ManageStamina(DeltaTime);
 	
 	AutomaticFire(DeltaTime);
 }
@@ -157,6 +163,9 @@ void ATP_ThirdPersonCharacter::SetupPlayerInputComponent(class UInputComponent* 
 	PlayerInputComponent->BindAxis("TurnRate", this, &ATP_ThirdPersonCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ATP_ThirdPersonCharacter::LookUpAtRate);
+
+	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &ATP_ThirdPersonCharacter::StartRunning);
+	PlayerInputComponent->BindAction("Run", IE_Released, this, &ATP_ThirdPersonCharacter::StopRunning);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -237,6 +246,11 @@ void ATP_ThirdPersonCharacter::AimOutArch() {
 }
 
 void ATP_ThirdPersonCharacter::AimIn() {
+	if(bHoldingRunButton)
+	{
+		StopRunning();
+	}
+	
 	GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Green, TEXT("Aim In"));
 	bUseControllerRotationYaw = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -293,6 +307,11 @@ void ATP_ThirdPersonCharacter::OnJumped_Implementation() {
 // Mechanic: Crouch
 
 void ATP_ThirdPersonCharacter::CrouchCharacter() {
+
+	if(bHoldingRunButton)
+	{
+		StopRunning();
+	}
 	
 	if (CanCrouch()) {
 		GEngine->AddOnScreenDebugMessage(-1, 0.2f, FColor::Green, TEXT("Crouch in"));
@@ -309,6 +328,76 @@ void ATP_ThirdPersonCharacter::StopCrouchCharacter() {
 		CrouchTimeline.Reverse();
 		OnCharacterUncrouch.Broadcast();
 	}
+}
+
+void ATP_ThirdPersonCharacter::StartRunning()
+{
+	if(!bHoldingRunButton && bCanRun && !bIsInCover && !bIsCrouched && !bIsAiming)
+	{
+		bHoldingRunButton = true;
+		GetCharacterMovement()->MaxWalkSpeed *= RunSpeedMultiplier;
+	}
+}
+
+void ATP_ThirdPersonCharacter::StopRunning()
+{
+	if(bHoldingRunButton)
+	{
+		bHoldingRunButton = false;
+		StopRunTime = GetWorld()->GetTimeSeconds();
+		GetCharacterMovement()->MaxWalkSpeed /= RunSpeedMultiplier;
+	}
+}
+
+void ATP_ThirdPersonCharacter::ManageStamina(float DeltaTime)
+{
+	if(IsRunning())
+	{
+		CurrentStamina -= StaminaConsumedPerSecond * DeltaTime;
+		CurrentStamina = FMath::Clamp(CurrentStamina, 0.0f, MaxStamina);
+		if(CurrentStamina == 0.0f)
+		{
+			ForceStopRunning();
+		}
+	}
+	else if(GetWorld()->GetTimeSeconds() - StopRunTime >= StaminaRecoveryStartDelay)
+	{
+		CurrentStamina += StaminaRecoveredPerSecond * DeltaTime;
+		CurrentStamina = FMath::Clamp(CurrentStamina, 0.0f, MaxStamina);
+		if(!bIsInputEnabled)
+		{
+			EnableInput(GetWorld()->GetFirstPlayerController());
+			bIsInputEnabled = true;
+		}
+		if(CurrentStamina == MaxStamina)
+		{
+			bCanRun = true;
+		}
+	}
+}
+
+void ATP_ThirdPersonCharacter::ForceStopRunning()
+{
+	if(bIsInputEnabled)
+	{
+		DisableInput(GetWorld()->GetFirstPlayerController());
+		bIsInputEnabled = false;
+		bCanRun = false;
+	}
+	StopRunning();
+}
+
+bool ATP_ThirdPersonCharacter::IsRunning()
+{
+	bool bIsRunning = bHoldingRunButton && GetCharacterMovement()->Velocity.Size() > 5;
+	if(!bIsRunning)
+	{
+		if(bPrevIsRunning)
+		{
+			StopRunTime = GetWorld()->GetTimeSeconds();
+		}
+	}
+	return bIsRunning;
 }
 
 //////////////////////////////////////////////////////////////////////////
