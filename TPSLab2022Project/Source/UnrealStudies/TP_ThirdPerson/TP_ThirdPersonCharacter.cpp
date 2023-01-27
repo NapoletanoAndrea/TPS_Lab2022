@@ -389,7 +389,7 @@ void ATP_ThirdPersonCharacter::ForceStopRunning()
 
 bool ATP_ThirdPersonCharacter::IsRunning()
 {
-	bool bIsRunning = bHoldingRunButton && GetCharacterMovement()->Velocity.Size() > 5;
+	bool bIsRunning = bHoldingRunButton && GetCharacterMovement()->Velocity.Size() > 5 && GetCharacterMovement()->IsMovingOnGround();
 	if(!bIsRunning)
 	{
 		if(bPrevIsRunning)
@@ -397,6 +397,7 @@ bool ATP_ThirdPersonCharacter::IsRunning()
 			StopRunTime = GetWorld()->GetTimeSeconds();
 		}
 	}
+	bPrevIsRunning = bIsRunning;
 	return bIsRunning;
 }
 
