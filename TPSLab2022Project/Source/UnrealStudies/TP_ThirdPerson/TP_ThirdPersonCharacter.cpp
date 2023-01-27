@@ -364,14 +364,15 @@ void ATP_ThirdPersonCharacter::ManageStamina(float DeltaTime)
 	{
 		CurrentStamina += StaminaRecoveredPerSecond * DeltaTime;
 		CurrentStamina = FMath::Clamp(CurrentStamina, 0.0f, MaxStamina);
-		if(!bIsInputEnabled)
-		{
-			EnableInput(GetWorld()->GetFirstPlayerController());
-			bIsInputEnabled = true;
-		}
+		
 		if(CurrentStamina == MaxStamina)
 		{
 			bCanRun = true;
+			if(!bIsInputEnabled)
+			{
+				EnableInput(GetWorld()->GetFirstPlayerController());
+				bIsInputEnabled = true;
+			}
 		}
 	}
 }
